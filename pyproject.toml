@@ -1,0 +1,23 @@
+[project]
+name = "dictation-tool"
+version = "0.1.0"
+description = "Ubuntu tray dictation tool with pluggable STT providers (Soniox, NVIDIA, Groq)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "keyring>=25.7.0",
+    "nvidia-riva-client>=2.26.0",
+    "pygobject>=3.56.3",
+    "python-dotenv>=1.2.2",
+    "requests>=2.34.2",
+    "soniox>=2.8.0",
+    "sounddevice>=0.5.5",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
