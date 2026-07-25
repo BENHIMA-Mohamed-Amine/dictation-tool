@@ -38,18 +38,13 @@ def test_save_persists_keyterms_and_provider_settings(tmp_path):
 
     window._keyterm_entry.set_text("Soniox")
     window._keyterm_entry.emit("activate")
-    groq = window._tabs["groq"]
-    groq._model_combo.set_active_id("whisper-large-v3")
-    groq._language_combo.set_active_id("fr")
+    window._tabs["groq"]._language_combo.set_active_id("fr")
 
     window._on_save_clicked(None)
 
     reloaded = ConfigStore(config_dir=tmp_path)
     assert reloaded.load()["keyterms"] == ["Soniox"]
-    assert reloaded.provider_settings("groq") == {
-        "model": "whisper-large-v3",
-        "language": "fr",
-    }
+    assert reloaded.provider_settings("groq") == {"model": None, "language": "fr"}
 
 
 def test_auto_detect_saves_as_none_not_empty_string(tmp_path):
@@ -63,10 +58,13 @@ def test_auto_detect_saves_as_none_not_empty_string(tmp_path):
     assert ConfigStore(config_dir=tmp_path).provider_settings("groq")["language"] is None
 
 
-def test_provider_without_models_saves_none(tmp_path):
+def test_model_is_display_only_and_never_written(tmp_path):
+    # Each provider has exactly one model, owned by the provider module — the
+    # UI shows it but must not start writing it into config.
     window = _window(tmp_path)
     window._load_from_config()  # show_window() minus actually mapping a window
-    assert window._tabs["nvidia"].values()["model"] is None
+    for tab in window._tabs.values():
+        assert tab.values()["model"] is None
 
 
 def test_cancel_discards_edits(tmp_path):

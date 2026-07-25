@@ -37,7 +37,12 @@ class Provider(ABC):
     # LANGUAGES: (label, code) pairs; a code of None means auto-detect, i.e. send
     # no language hint at all. Providers whose API requires an explicit language
     # simply don't offer a None entry.
-    MODELS: List[str] = []
+    # MODEL_LABEL: the model this provider transcribes with, shown read-only in
+    # settings. A single string, not a list, because each provider currently
+    # offers exactly one model worth using — a one-entry dropdown is dead UI.
+    # If a provider ever gains a real choice, this becomes a list and the label
+    # becomes a dropdown.
+    MODEL_LABEL: str = ""
     LANGUAGES: List[Tuple[str, Optional[str]]] = []
 
     @abstractmethod

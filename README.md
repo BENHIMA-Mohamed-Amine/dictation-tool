@@ -31,7 +31,9 @@ Tray → **Settings**:
 
 - **Keyterms** — one global vocabulary-boost list, applied to whichever provider
   is active. Type a term, press Enter; click × to remove.
-- **Per provider** — model, API key, and language. Language defaults to
-  Auto-detect for Groq and Soniox; NVIDIA requires an explicit language.
+- **Per provider** — the model in use (read-only: one model per provider), API
+  key, and language. Language defaults to Auto-detect for Groq and Soniox;
+  NVIDIA requires an explicit language. Saved keys show as
+  `gsk_••••••••3f2a` — first and last four characters only.
 
 Settings live in `~/.config/dictation-tool/config.json`.

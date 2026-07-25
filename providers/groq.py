@@ -15,7 +15,9 @@ class GroqProvider(Provider):
     name = "groq"
     display_name = "Groq"
     streaming = False
-    MODELS = [DEFAULT_MODEL, "whisper-large-v3", "distil-whisper-large-v3-en"]
+    # Groq's real-time-oriented Whisper: ~216x realtime, multilingual, accuracy
+    # comparable to whisper-large-v3.
+    MODEL_LABEL = DEFAULT_MODEL
     LANGUAGES = ISO_639_1_LANGUAGES
 
     def configure(

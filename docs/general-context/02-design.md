@@ -8,7 +8,7 @@
 
 ## Settings window
 - **Keyterms / vocabulary boost**: one global tag list (add term, press Enter; removable chips) at the top — shared across all providers, feeds each provider's keyword-boosting config.
-- Below that, per-provider tabs (Soniox / NVIDIA / Groq), each with: Model (dropdown), API key (masked "•••• saved" + Change button, opens a secure prompt, never shown in plaintext), Language (dropdown).
+- Below that, per-provider tabs (Soniox / NVIDIA / Groq), each with: Model (read-only label — each provider has exactly one model worth using, so there's nothing to pick), API key (first/last four characters with the middle masked, e.g. `gsk_••••••••3f2a`, + Change button opening a secure prompt — enough to tell two keys apart, never the full value), Language (dropdown, defaulting to Auto-detect where the provider supports it).
 - No output-mode setting to speak of — auto-type/clipboard-on-stop was tried and removed (didn't work reliably on Wayland, timing was confusing). Output is manual: the popup's Copy button.
 - Save / Cancel at the bottom.
 

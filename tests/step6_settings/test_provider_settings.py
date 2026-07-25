@@ -37,3 +37,30 @@ def test_has_key_reflects_keyring_without_exposing_value(tmp_path, monkeypatch):
 
     monkeypatch.setattr(config_module.keyring, "get_password", lambda *_: "secret")
     assert store.has_key("groq") is True
+
+
+def test_key_hint_shows_only_first_and_last_four(tmp_path, monkeypatch):
+    store = ConfigStore(config_dir=tmp_path)
+    monkeypatch.setattr(config_module.keyring, "get_password", lambda *_: "gsk_abcdefghijklmnop3f2a")
+
+    hint = store.key_hint("groq")
+    assert hint.startswith("gsk_")
+    assert hint.endswith("3f2a")
+    assert "abcdefghijklmnop" not in hint
+    assert "•" in hint
+
+
+def test_key_hint_fully_masks_short_keys(tmp_path, monkeypatch):
+    # A first-4/last-4 preview of a 12-char key would expose most of it.
+    store = ConfigStore(config_dir=tmp_path)
+    monkeypatch.setattr(config_module.keyring, "get_password", lambda *_: "short-key-12")
+
+    assert set(store.key_hint("groq")) == {"•"}
+
+
+def test_key_hint_is_none_when_unset(tmp_path, monkeypatch):
+    store = ConfigStore(config_dir=tmp_path)
+    monkeypatch.setattr(config_module.keyring, "get_password", lambda *_: None)
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+
+    assert store.key_hint("groq") is None

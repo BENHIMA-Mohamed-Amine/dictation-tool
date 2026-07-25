@@ -17,9 +17,8 @@ class SonioxProvider(Provider):
     name = "soniox"
     display_name = "Soniox"
     streaming = True
-    # Only the model this app has actually been run against. Add ids here as
-    # they're verified rather than listing everything the API might accept.
-    MODELS = [DEFAULT_MODEL]
+    # Soniox's current real-time model (stt-rt-v4 is just an alias for it).
+    MODEL_LABEL = DEFAULT_MODEL
     LANGUAGES = ISO_639_1_LANGUAGES
 
     def configure(

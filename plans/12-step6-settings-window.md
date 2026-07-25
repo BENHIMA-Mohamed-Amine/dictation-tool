@@ -23,9 +23,19 @@ The settings window must not contain an `if provider == "soniox"` chain. Each
 provider declares its own options as class attributes on `Provider`:
 
 ```python
-MODELS: list[str]                    # empty == provider has no model choice (NVIDIA)
+display_name: str                         # "NVIDIA", not "Nvidia"
+MODEL_LABEL: str                          # the one model this provider uses
 LANGUAGES: list[tuple[str, str | None]]   # (label, code); None == Auto-detect
 ```
+
+**Revised during implementation:** `MODEL_LABEL` started as a `MODELS` list
+feeding a dropdown. After checking each provider's docs, every one has exactly
+one model worth using — Groq `whisper-large-v3-turbo` (real-time oriented,
+multilingual), Soniox `stt-rt-v5` (current; v4 is an alias, deprecated
+2026-06-30), NVIDIA the hosted `nemotron-asr-streaming` NVCF function (not one
+of the downloadable NIM containers). A one-entry dropdown is dead UI, so the
+model is a read-only label. `config.json` keeps its per-provider `model` field,
+always `null`, as the place a real choice would go.
 
 The window builds each tab by iterating `PROVIDERS` and reading these. Adding a
 provider stays a `providers/`-only change, as `01-features.md` requires.
@@ -63,8 +73,11 @@ which stays in the provider module.
 
 Keys are never written to `config.json` and never read back into the UI.
 
-- `ConfigStore.has_key(provider) -> bool` — new; lets the window render
-  "•••••••• saved" vs "not set" without ever touching the value.
+- `ConfigStore.key_hint(provider) -> str | None` — a `gsk_••••••••3f2a` preview,
+  so you can tell which key is loaded without exposing it. Masking happens in
+  `ConfigStore`, so the full value never reaches the UI layer. Keys shorter than
+  16 chars are fully masked, since first-4/last-4 would reveal most of them.
+- `ConfigStore.has_key(provider) -> bool` — cheap "is one set at all" check.
 - The **Change** button opens a small modal with a masked `Gtk.Entry`
   (`set_visibility(False)`); on OK it calls the existing `set_key()` → keyring.
 - `get_key()` keeps its `.env` fallback, so nothing breaks for existing setups.

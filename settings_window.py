@@ -7,8 +7,6 @@ from gi.repository import Gdk, Gtk
 from config import ConfigStore
 from providers import PROVIDERS
 
-KEY_PLACEHOLDER = "•" * 16
-
 # Keyterms render as pills per design/settings_window.svg. Colours come from
 # the GTK theme (@theme_selected_* ) rather than the mockup's hardcoded blues,
 # so the window still looks right in a dark theme.
@@ -152,16 +150,8 @@ class _ProviderTab(Gtk.Box):
         self.config = config
         self.parent_window = parent
 
-        self._model_combo = Gtk.ComboBoxText()
-        for model in provider_cls.MODELS:
-            self._model_combo.append(model, model)
-        if not provider_cls.MODELS:
-            # NVIDIA: the hosted function id is the model, so there's nothing to
-            # pick. Show why rather than an empty dropdown.
-            self._model_combo.append("", "Not configurable for this provider")
-            self._model_combo.set_sensitive(False)
         self.pack_start(_label("Model"), False, False, 0)
-        self.pack_start(self._model_combo, False, False, 0)
+        self.pack_start(Gtk.Label(label=provider_cls.MODEL_LABEL, xalign=0), False, False, 0)
 
         self.pack_start(_label("API key"), False, False, 0)
         key_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -183,22 +173,21 @@ class _ProviderTab(Gtk.Box):
         self._refresh_key_status()
 
     def load(self, settings: dict) -> None:
-        self._model_combo.set_active_id(settings["model"] or "")
-        if self._model_combo.get_active_id() is None:
-            self._model_combo.set_active(0)
         self._language_combo.set_active_id(settings["language"] or "")
         if self._language_combo.get_active_id() is None:
             self._language_combo.set_active(0)
         self._refresh_key_status()
 
     def values(self) -> dict:
-        model = self._model_combo.get_active_id() if self._model_combo.get_sensitive() else None
+        # model stays None: each provider has exactly one model, and which one
+        # that is lives in the provider module. The field is kept so a provider
+        # that gains a choice has somewhere to store it.
         language = self._language_combo.get_active_id()
-        return {"model": model or None, "language": language or None}
+        return {"model": None, "language": language or None}
 
     def _refresh_key_status(self) -> None:
-        saved = self.config.has_key(self.name)
-        self._key_status.set_text(f"{KEY_PLACEHOLDER} saved" if saved else "Not set")
+        hint = self.config.key_hint(self.name)
+        self._key_status.set_text(hint or "Not set")
 
     def _on_change_key_clicked(self, _button) -> None:
         dialog = Gtk.Dialog(title=f"{self.display_name} API key", transient_for=self.parent_window, modal=True)

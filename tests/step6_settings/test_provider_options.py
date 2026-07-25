@@ -5,7 +5,8 @@ def test_every_provider_declares_settings_options():
     # The settings window builds a tab per registered provider purely from
     # these attributes, so a provider missing them would render an empty tab.
     for name, cls in PROVIDERS.items():
-        assert isinstance(cls.MODELS, list), name
+        assert cls.MODEL_LABEL, f"{name} must name the model it uses"
+        assert cls.display_name, name
         assert cls.LANGUAGES, f"{name} must offer at least one language"
 
 

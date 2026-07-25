@@ -22,6 +22,9 @@ DEFAULTS = {
 
 PROVIDER_DEFAULTS = {"model": None, "language": None}
 
+# Below this, a first-4/last-4 preview would expose most of the key.
+KEY_HINT_MIN_LENGTH = 16
+
 ENV_KEY_VARS = {
     "groq": "GROQ_API_KEY",
     "soniox": "SONIOX_API_KEY",
@@ -52,6 +55,21 @@ class ConfigStore:
         # Lets the settings window show "saved" without ever reading the secret
         # into the UI layer.
         return bool(self.get_key(provider))
+
+    def key_hint(self, provider: str) -> Optional[str]:
+        """Masked preview like `gsk_••••••••3f2a`, or None if no key is set.
+
+        Enough to tell two keys apart without putting the secret on screen. The
+        masking happens here, not in the UI, so the full value never leaves this
+        class. Short keys are fully masked — revealing 8 of 12 characters would
+        be worse than showing nothing.
+        """
+        key = self.get_key(provider)
+        if not key:
+            return None
+        if len(key) < KEY_HINT_MIN_LENGTH:
+            return "•" * 12
+        return f"{key[:4]}{'•' * 8}{key[-4:]}"
 
     def get_key(self, provider: str) -> Optional[str]:
         key = keyring.get_password(KEYRING_SERVICE, provider)

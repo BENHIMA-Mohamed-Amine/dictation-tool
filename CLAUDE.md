@@ -97,7 +97,7 @@ dictation-tool/
 ├── docs/
 │   └── general-context/       # background reference docs (general plan, features, design, class design) — not tracked plan files
 ├── providers/
-│   ├── base.py                # Provider ABC — the interface every STT backend implements, plus the settings-UI metadata each one declares (display_name, MODELS, LANGUAGES) and the shared ISO_639_1_LANGUAGES list
+│   ├── base.py                # Provider ABC — the interface every STT backend implements, plus the settings-UI metadata each one declares (display_name, MODEL_LABEL, LANGUAGES) and the shared ISO_639_1_LANGUAGES list
 │   ├── groq.py                 # GroqProvider — batch REST transcription via Groq's Whisper endpoint
 │   ├── soniox.py                # SonioxProvider — real-time streaming via the official Soniox SDK
 │   ├── nvidia.py                # NvidiaProvider — gRPC streaming via nvidia-riva-client against the hosted NIM API (nemotron-asr-streaming)
@@ -105,7 +105,7 @@ dictation-tool/
 ├── tests/                     # automated tests, one subfolder per build step (e.g. step1_cli_core/), no real mic/network needed
 ├── audio.py                   # AudioRecorder — mic capture via sounddevice
 ├── config.py                  # ConfigStore — config.json (selected_provider, keyterms, per-provider model/language) + keyring-backed API key storage. `null` for model/language means "use the provider module's default"
-├── settings_window.py         # SettingsWindow — global keyterm chips + a tab per registered provider (model/API key/language). Tabs are built from each provider class's MODELS/LANGUAGES/display_name, so adding a provider needs no change here. Keys go straight to the keyring from their own masked dialog, not on Save
+├── settings_window.py         # SettingsWindow — global keyterm chips + a tab per registered provider (model shown read-only, API key, language). Tabs are built from each provider class's MODEL_LABEL/LANGUAGES/display_name, so adding a provider needs no change here. Keys go straight to the keyring from their own masked dialog, not on Save
 ├── controller.py                # DictationController — start()/stop()/toggle() + record_once() CLI wrapper. No auto-output: callers read the transcript from stop()'s return value or the popup.
 ├── tray.py                    # TrayIcon — AppIndicator3 (AyatanaAppIndicator3) tray menu: toggle, provider submenu, settings, quit. Note: the menu closes on every click (dbusmenu behavior, not fixable), which is why the everyday Start/Stop control also lives in the transcript window
 ├── transcript_window.py       # TranscriptWindow — GTK window: editable transcript + Start/Stop, Copy, Clear buttons. Shown at launch; the Start/Stop button here is the everyday control (tray menus close on every click). A GTK mark splits settled text (user-editable) from the live partial tail (the only part rewritten). Copy is the only way to get text out (auto-type/clipboard-on-stop was tried and removed — see plans/done/08-remove-auto-output.md)

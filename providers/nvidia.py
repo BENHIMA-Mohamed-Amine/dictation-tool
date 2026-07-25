@@ -8,6 +8,11 @@ from audio import CHANNELS, SAMPLE_RATE
 from providers.base import Provider
 
 NVCF_URI = "grpc.nvcf.nvidia.com:443"
+# The hosted NVCF streaming ASR function this app calls. It is *not* one of the
+# downloadable NIM containers on build.nvidia.com (parakeet-*, conformer-*,
+# whisper-large-v3) — those are self-hosted images with their own endpoints.
+# This is a managed function, so the id is the whole model selection.
+NEMOTRON_ASR_STREAMING_MODEL = "nemotron-asr-streaming"
 NEMOTRON_ASR_STREAMING_FUNCTION_ID = "bb0837de-8c7b-481f-9ec8-ef5663e9c1fa"
 DEFAULT_LANGUAGE = "en-US"
 WORD_BOOST_SCORE = 20.0
@@ -19,8 +24,7 @@ class NvidiaProvider(Provider):
     name = "nvidia"
     display_name = "NVIDIA"
     streaming = True
-    # No model choice: the hosted NIM function id above *is* the model.
-    MODELS = []
+    MODEL_LABEL = f"{NEMOTRON_ASR_STREAMING_MODEL} (hosted by NVIDIA)"
     # Riva requires an explicit language_code, so there's no auto-detect entry
     # here — unlike Groq/Soniox, omitting the language isn't an option. Whether
     # this function accepts "multi" for auto-detection is unverified (needs a
