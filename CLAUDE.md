@@ -111,6 +111,7 @@ dictation-tool/
 ├── tray.py                    # TrayIcon — AppIndicator3 (AyatanaAppIndicator3) tray menu: toggle, provider submenu, settings, quit. Note: the menu closes on every click (dbusmenu behavior, not fixable), which is why the everyday Start/Stop control also lives in the transcript window
 ├── transcript_window.py       # TranscriptWindow — GTK window: editable transcript + Start/Stop, Copy, Clear buttons. Shown at launch; the Start/Stop button here is the everyday control (tray menus close on every click). A GTK mark splits settled text (user-editable) from the live partial tail (the only part rewritten). Copy is the only way to get text out (auto-type/clipboard-on-stop was tried and removed — see plans/done/08-remove-auto-output.md)
 ├── main.py                    # App orchestrator — wires ConfigStore, DictationController, TrayIcon, TranscriptWindow, SettingsWindow; runs Gtk.main(). Tray click is the only trigger (a ControlSocket/hotkey_daemon.py global-hotkey path was tried and removed — GNOME keybinding never fired the command — see plans/done/10-remove-global-hotkey.md)
+├── dictation                  # `dictation start|stop|status` launcher — runs main.py detached via .venv/bin/python, pidfile in $XDG_RUNTIME_DIR. Symlink it into ~/.local/bin
 ├── pyproject.toml             # uv-managed project config
 ├── .env                       # local secrets (GROQ_API_KEY, SONIOX_API_KEY) — gitignored
 ├── .env.example                # template for .env, committed

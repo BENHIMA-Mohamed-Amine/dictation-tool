@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# dictation start|stop|status — run the tray app in the background.
+set -eu
+
+REPO=$(dirname "$(readlink -f "$0")")
+PIDFILE=${XDG_RUNTIME_DIR:-/tmp}/dictation-tool.pid
+LOG=${XDG_RUNTIME_DIR:-/tmp}/dictation-tool.log
+
+running() { [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; }
+
+case "${1:-}" in
+  start)
+    running && { echo "already running (pid $(cat "$PIDFILE"))"; exit 0; }
+    # setsid makes the app its own process group, so stop can kill uv/python
+    # together instead of orphaning the child.
+    setsid "$REPO/.venv/bin/python" "$REPO/main.py" >"$LOG" 2>&1 &
+    echo $! >"$PIDFILE"
+    echo "started (pid $!), log: $LOG"
+    ;;
+  stop)
+    running || { echo "not running"; rm -f "$PIDFILE"; exit 0; }
+    kill -- "-$(cat "$PIDFILE")"
+    rm -f "$PIDFILE"
+    echo "stopped"
+    ;;
+  status)
+    running && echo "running (pid $(cat "$PIDFILE"))" || echo "not running"
+    ;;
+  *)
+    echo "usage: dictation start|stop|status" >&2
+    exit 1
+    ;;
+esac
