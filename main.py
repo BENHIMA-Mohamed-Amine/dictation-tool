@@ -16,7 +16,9 @@ class App:
     def __init__(self) -> None:
         self.config = ConfigStore()
         self.controller = DictationController(config=self.config)
-        self.transcript_window = TranscriptWindow(on_close=self._on_window_closed)
+        self.transcript_window = TranscriptWindow(
+            on_close=self._on_window_closed, on_toggle=self._on_toggle
+        )
         self.tray = TrayIcon(config=self.config, on_toggle=self._on_toggle, on_quit=self._on_quit)
         # Every click spawns a worker thread; this lock makes sure a second
         # click waits for the previous start()/stop() to fully finish before
@@ -25,6 +27,12 @@ class App:
 
     def _on_toggle(self) -> None:
         threading.Thread(target=self._toggle_worker, daemon=True).start()
+
+    def _set_recording(self, recording: bool) -> None:
+        # Both surfaces show the same state; the window button is the one you
+        # can click twice in a row without the tray menu closing on you.
+        self.tray.set_recording(recording)
+        self.transcript_window.set_recording(recording)
 
     def _on_window_closed(self) -> None:
         # Closing the transcript window means "I'm done" — stop any active
@@ -47,7 +55,7 @@ class App:
                         on_final=lambda text: GLib.idle_add(self.transcript_window.append_final, text),
                     )
                     GLib.idle_add(self.transcript_window.show_window)
-                    GLib.idle_add(self.tray.set_recording, True)
+                    GLib.idle_add(self._set_recording, True)
                 else:
                     # stop_async() only blocks for the fast part (recorder
                     # stop + is_recording flip) — the slow part (provider
@@ -56,10 +64,10 @@ class App:
                     # released almost immediately. Holding the lock for the
                     # full stop() used to make a quick Start-after-Stop click
                     # queue up behind Soniox's multi-second session drain.
-                    GLib.idle_add(self.tray.set_recording, False)
+                    GLib.idle_add(self._set_recording, False)
                     self.controller.stop_async()
             except Exception as exc:
-                GLib.idle_add(self.tray.set_recording, False)
+                GLib.idle_add(self._set_recording, False)
                 GLib.idle_add(self.transcript_window.hide_window)
                 print(f"Dictation error: {exc}")
 
@@ -67,6 +75,7 @@ class App:
         Gtk.main_quit()
 
     def run(self) -> None:
+        self.transcript_window.show_window()
         Gtk.main()
 
 
