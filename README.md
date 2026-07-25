@@ -37,3 +37,8 @@ Tray → **Settings**:
   `gsk_••••••••3f2a` — first and last four characters only.
 
 Settings live in `~/.config/dictation-tool/config.json`.
+
+## Adding a provider
+
+See [docs/adding-a-provider.md](docs/adding-a-provider.md) — a new backend is a
+new file in `providers/` plus one line in `providers/__init__.py`.

@@ -25,11 +25,6 @@ PROVIDER_DEFAULTS = {"model": None, "language": None}
 # Below this, a first-4/last-4 preview would expose most of the key.
 KEY_HINT_MIN_LENGTH = 16
 
-ENV_KEY_VARS = {
-    "groq": "GROQ_API_KEY",
-    "soniox": "SONIOX_API_KEY",
-    "nvidia": "NVIDIA_API_KEY",
-}
 
 
 class ConfigStore:
@@ -75,7 +70,9 @@ class ConfigStore:
         key = keyring.get_password(KEYRING_SERVICE, provider)
         if key:
             return key
-        return os.environ.get(ENV_KEY_VARS.get(provider, ""))
+        # Derived, not a lookup table: a provider registered as "groq" reads
+        # GROQ_API_KEY. Keeps adding a provider a providers/-only change.
+        return os.environ.get(f"{provider.upper()}_API_KEY")
 
     def set_key(self, provider: str, value: str) -> None:
         keyring.set_password(KEYRING_SERVICE, provider, value)

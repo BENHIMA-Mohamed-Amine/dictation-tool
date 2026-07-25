@@ -62,7 +62,7 @@ class SettingsWindow(Gtk.Window):
         box.pack_start(self._chips, False, False, 0)
 
         self._keyterm_entry = Gtk.Entry()
-        self._keyterm_entry.set_placeholder_text("Add term, press Enter")
+        self._keyterm_entry.set_placeholder_text("Type a term, press Enter to add — then Save")
         self._keyterm_entry.connect("activate", self._on_keyterm_entered)
         box.pack_start(self._keyterm_entry, False, False, 0)
 
@@ -131,6 +131,9 @@ class SettingsWindow(Gtk.Window):
         for term in self._keyterms:
             chip = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
             chip.get_style_context().add_class("keyterm-chip")
+            # FlowBox gives every child an equal-width column; without this the
+            # pill background stretches across it instead of hugging the word.
+            chip.set_halign(Gtk.Align.START)
             chip.pack_start(Gtk.Label(label=term), False, False, 0)
             remove = Gtk.Button(label="×")
             remove.set_relief(Gtk.ReliefStyle.NONE)

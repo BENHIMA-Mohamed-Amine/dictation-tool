@@ -95,6 +95,7 @@ dictation-tool/
 ├── plans/                     # tracked plan files for big features (status: proposed/approved/done/deferred)
 │   └── done/                  # completed plan files, moved here once a plan's status reaches `done`
 ├── docs/
+│   ├── adding-a-provider.md   # how-to for adding a new STT backend (the Provider contract, registry, keys, tests)
 │   └── general-context/       # background reference docs (general plan, features, design, class design) — not tracked plan files
 ├── providers/
 │   ├── base.py                # Provider ABC — the interface every STT backend implements, plus the settings-UI metadata each one declares (display_name, MODEL_LABEL, LANGUAGES) and the shared ISO_639_1_LANGUAGES list
