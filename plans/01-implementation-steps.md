@@ -27,7 +27,7 @@ Each step below is a complete, end-to-end testable slice of the app — not just
 **What it does:** same tray/hotkey flow, extended to the third provider (gRPC streaming). Groq and Soniox already exist from step 1 — this step just adds NVIDIA to the registry and wires provider switching into the tray submenu for all three.
 **End-to-end test:** switch between Groq, Soniox, and NVIDIA from the tray, confirm each transcribes correctly (partials live for Soniox/NVIDIA, single result for Groq).
 
-## Step 6 — Settings window
+## Step 6 — Settings window ✅ implemented (see `plans/12-step6-settings-window.md`) — manual end-to-end test pending
 **Files:** add `settings_window.py`
 **What it does:** replaces any hardcoded config/API keys with the real settings UI — global keyterms list, per-provider model/key/language, all persisted via `ConfigStore` + `keyring`.
 **End-to-end test:** add a keyterm the current provider keeps mis-transcribing, save, dictate the same word again, confirm it's now correct.

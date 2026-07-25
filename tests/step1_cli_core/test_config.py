@@ -13,4 +13,6 @@ def test_save_then_load_round_trip(tmp_path):
     store.save(data)
     loaded = ConfigStore(config_dir=tmp_path).load()
 
-    assert loaded == data
+    # Not an equality check: load() fills in any key the saved file predates,
+    # so a config written before a new setting existed still loads.
+    assert loaded == {**DEFAULTS, **data}

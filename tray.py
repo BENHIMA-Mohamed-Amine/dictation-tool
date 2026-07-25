@@ -18,10 +18,11 @@ TOGGLE_DEBOUNCE_SECONDS = 0.15
 
 
 class TrayIcon:
-    def __init__(self, config: ConfigStore, on_toggle, on_quit) -> None:
+    def __init__(self, config: ConfigStore, on_toggle, on_quit, on_settings=None) -> None:
         self.config = config
         self.on_toggle = on_toggle
         self.on_quit = on_quit
+        self.on_settings = on_settings
         self._last_toggle_time = 0.0
 
         self.indicator = AppIndicator3.Indicator.new(
@@ -43,14 +44,18 @@ class TrayIcon:
         provider_submenu = Gtk.Menu()
         selected_provider = self.config.load()["selected_provider"]
         group = None
-        for name in PROVIDERS:
-            item = Gtk.RadioMenuItem.new_with_label_from_widget(group, name)
+        for name, provider_cls in PROVIDERS.items():
+            item = Gtk.RadioMenuItem.new_with_label_from_widget(group, provider_cls.display_name)
             group = item
             item.set_active(name == selected_provider)
             item.connect("toggled", self._on_provider_toggled, name)
             provider_submenu.append(item)
         provider_item.set_submenu(provider_submenu)
         self.menu.append(provider_item)
+
+        settings_item = Gtk.MenuItem(label="Settings")
+        settings_item.connect("activate", lambda _widget: self.on_settings and self.on_settings())
+        self.menu.append(settings_item)
 
         self.menu.append(Gtk.SeparatorMenuItem())
 

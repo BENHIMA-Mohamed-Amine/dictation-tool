@@ -12,6 +12,9 @@ class FakeConfig:
     def get_key(self, provider):
         return "fake-key"
 
+    def provider_settings(self, provider):
+        return {"model": None, "language": None}
+
 
 class SlowStopProvider:
     streaming = False

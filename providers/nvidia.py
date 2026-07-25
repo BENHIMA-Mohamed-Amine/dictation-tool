@@ -17,7 +17,20 @@ _STOP_SENTINEL = None
 
 class NvidiaProvider(Provider):
     name = "nvidia"
+    display_name = "NVIDIA"
     streaming = True
+    # No model choice: the hosted NIM function id above *is* the model.
+    MODELS = []
+    # Riva requires an explicit language_code, so there's no auto-detect entry
+    # here — unlike Groq/Soniox, omitting the language isn't an option. Whether
+    # this function accepts "multi" for auto-detection is unverified (needs a
+    # live API key); add it once confirmed.
+    LANGUAGES = [
+        ("English (US)", "en-US"),
+        ("French", "fr-FR"),
+        ("Spanish", "es-US"),
+        ("German", "de-DE"),
+    ]
 
     def configure(
         self,

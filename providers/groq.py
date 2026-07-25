@@ -5,7 +5,7 @@ from typing import Callable, List, Optional
 import requests
 
 from audio import CHANNELS, SAMPLE_RATE, SAMPLE_WIDTH
-from providers.base import Provider
+from providers.base import ISO_639_1_LANGUAGES, Provider
 
 GROQ_URL = "https://api.groq.com/openai/v1/audio/transcriptions"
 DEFAULT_MODEL = "whisper-large-v3-turbo"
@@ -13,7 +13,10 @@ DEFAULT_MODEL = "whisper-large-v3-turbo"
 
 class GroqProvider(Provider):
     name = "groq"
+    display_name = "Groq"
     streaming = False
+    MODELS = [DEFAULT_MODEL, "whisper-large-v3", "distil-whisper-large-v3-en"]
+    LANGUAGES = ISO_639_1_LANGUAGES
 
     def configure(
         self,

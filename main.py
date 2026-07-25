@@ -8,6 +8,7 @@ from gi.repository import GLib, Gtk
 
 from config import ConfigStore
 from controller import DictationController
+from settings_window import SettingsWindow
 from transcript_window import TranscriptWindow
 from tray import TrayIcon
 
@@ -19,7 +20,13 @@ class App:
         self.transcript_window = TranscriptWindow(
             on_close=self._on_window_closed, on_toggle=self._on_toggle
         )
-        self.tray = TrayIcon(config=self.config, on_toggle=self._on_toggle, on_quit=self._on_quit)
+        self.settings_window = SettingsWindow(config=self.config)
+        self.tray = TrayIcon(
+            config=self.config,
+            on_toggle=self._on_toggle,
+            on_quit=self._on_quit,
+            on_settings=self.settings_window.show_window,
+        )
         # Every click spawns a worker thread; this lock makes sure a second
         # click waits for the previous start()/stop() to fully finish before
         # it even checks the recording state, instead of racing it.

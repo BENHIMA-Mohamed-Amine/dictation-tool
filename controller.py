@@ -61,7 +61,13 @@ class DictationController:
         if not api_key:
             raise RuntimeError(f"No API key configured for provider '{provider_name}'")
 
-        provider.configure(api_key=api_key, keyterms=data["keyterms"])
+        settings = self.config.provider_settings(provider_name)
+        provider.configure(
+            api_key=api_key,
+            model=settings["model"],
+            language=settings["language"],
+            keyterms=data["keyterms"],
+        )
 
         # A previous session's provider (e.g. Soniox's background listener
         # thread) can still be winding down and deliver a late callback after

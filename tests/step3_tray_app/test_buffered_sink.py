@@ -56,6 +56,9 @@ class FakeConfig:
     def get_key(self, provider):
         return "fake-key"
 
+    def provider_settings(self, provider):
+        return {"model": None, "language": None}
+
 
 def test_start_returns_before_slow_provider_connects_but_stop_waits_for_it(monkeypatch):
     monkeypatch.setattr(controller_module, "PROVIDERS", {"fake": SlowConnectProvider})

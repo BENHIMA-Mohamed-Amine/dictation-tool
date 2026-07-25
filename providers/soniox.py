@@ -5,7 +5,7 @@ from soniox.client import SonioxClient
 from soniox.types import RealtimeSTTConfig, StructuredContext
 
 from audio import CHANNELS, SAMPLE_RATE
-from providers.base import Provider
+from providers.base import ISO_639_1_LANGUAGES, Provider
 
 DEFAULT_MODEL = "stt-rt-v5"
 
@@ -15,7 +15,12 @@ CONTROL_TOKENS = {"<fin>", "<end>"}
 
 class SonioxProvider(Provider):
     name = "soniox"
+    display_name = "Soniox"
     streaming = True
+    # Only the model this app has actually been run against. Add ids here as
+    # they're verified rather than listing everything the API might accept.
+    MODELS = [DEFAULT_MODEL]
+    LANGUAGES = ISO_639_1_LANGUAGES
 
     def configure(
         self,

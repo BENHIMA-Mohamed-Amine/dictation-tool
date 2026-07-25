@@ -12,6 +12,9 @@ class FakeConfig:
     def get_key(self, provider):
         return "fake-key"
 
+    def provider_settings(self, provider):
+        return {"model": None, "language": None}
+
 
 @pytest.mark.parametrize("streaming", [False, True])
 def test_record_once_drives_provider_in_order(monkeypatch, streaming):
