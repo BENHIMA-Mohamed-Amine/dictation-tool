@@ -33,6 +33,12 @@ dictation stop
 dictation status
 ```
 
+For bash tab-completion of `start`/`stop`/`status`, add to `~/.bashrc`:
+
+```
+complete -W "start stop status" dictation
+```
+
 Output goes to `$XDG_RUNTIME_DIR/dictation-tool.log` (usually
 `/run/user/1000/dictation-tool.log`) — check it there if `start` seems to do
 nothing.
