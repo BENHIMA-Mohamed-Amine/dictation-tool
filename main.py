@@ -1,4 +1,6 @@
+import socket
 import threading
+from pathlib import Path
 
 import gi
 
@@ -6,11 +8,54 @@ gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk
 
-from config import ConfigStore
+from config import CONFIG_DIR, ConfigStore
 from controller import DictationController
 from settings_window import SettingsWindow
 from transcript_window import TranscriptWindow
 from tray import TrayIcon
+
+SOCKET_PATH = CONFIG_DIR / "ctl.sock"
+
+
+class ControlSocket:
+    """Unix socket letting an external process (e.g. a GNOME keyboard
+    shortcut running dictation_ctl.py) trigger start/stop/quit in this
+    running app. Wayland blocks apps from registering their own global
+    hotkeys, so the actual key binding lives outside this app entirely —
+    this socket is just the app's side of that handoff.
+    """
+
+    def __init__(self, on_start, on_stop, on_quit, socket_path: Path = SOCKET_PATH) -> None:
+        self._handlers = {b"start": on_start, b"stop": on_stop, b"quit": on_quit}
+        self._socket_path = socket_path
+
+        self._socket_path.parent.mkdir(parents=True, exist_ok=True)
+        # A stale socket file left over from a previous crashed run makes
+        # bind() fail with "address already in use" otherwise.
+        self._socket_path.unlink(missing_ok=True)
+
+        self._server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self._server.bind(str(self._socket_path))
+        self._server.listen(1)
+
+    def start(self) -> None:
+        threading.Thread(target=self._accept_loop, daemon=True).start()
+
+    def _accept_loop(self) -> None:
+        while True:
+            try:
+                conn, _ = self._server.accept()
+            except OSError:
+                return  # socket closed underneath us
+            with conn:
+                data = conn.recv(64)
+            handler = self._handlers.get(data)
+            if handler:
+                GLib.idle_add(handler)
+
+    def close(self) -> None:
+        self._server.close()
+        self._socket_path.unlink(missing_ok=True)
 
 
 class App:
@@ -31,6 +76,12 @@ class App:
         # click waits for the previous start()/stop() to fully finish before
         # it even checks the recording state, instead of racing it.
         self._toggle_lock = threading.Lock()
+        self.control_socket = ControlSocket(
+            on_start=self._on_hotkey_start,
+            on_stop=self._on_hotkey_stop,
+            on_quit=self._on_quit,
+        )
+        self.control_socket.start()
 
     def _on_toggle(self) -> None:
         threading.Thread(target=self._toggle_worker, daemon=True).start()
@@ -78,7 +129,27 @@ class App:
                 GLib.idle_add(self.transcript_window.hide_window)
                 print(f"Dictation error: {exc}")
 
+    def _on_hotkey_start(self) -> None:
+        if self.controller.is_recording:
+            GLib.idle_add(self.transcript_window.raise_window)
+        else:
+            self._on_toggle()
+
+    def _on_hotkey_stop(self) -> None:
+        if self.controller.is_recording:
+            self._on_toggle()
+
     def _on_quit(self) -> None:
+        if self.controller.is_recording:
+            # Blocking here (rather than stop_async) is deliberate: the
+            # process is about to exit, so this is the last chance to let
+            # the provider tear down cleanly (e.g. Soniox's session drain)
+            # instead of the connection just dying mid-stream.
+            try:
+                self.controller.stop()
+            except Exception as exc:
+                print(f"Dictation error: {exc}")
+        self.control_socket.close()
         Gtk.main_quit()
 
     def run(self) -> None:

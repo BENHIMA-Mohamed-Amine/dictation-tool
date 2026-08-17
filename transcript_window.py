@@ -2,7 +2,7 @@ import gi
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, GLib, Gtk
 
 
 class TranscriptWindow(Gtk.Window):
@@ -62,6 +62,18 @@ class TranscriptWindow(Gtk.Window):
 
     def show_window(self) -> None:
         self.show_all()
+        self.present()
+
+    def raise_window(self) -> None:
+        """Bring an already-visible-but-buried window to the front.
+
+        On Wayland, present() on a window that's already mapped is blocked
+        by GNOME's focus-stealing prevention — only a genuinely new window
+        map reliably gets focus granted. Unmapping and remapping on the next
+        loop iteration gets treated as one, which does get focus.
+        """
+        self.hide()
+        GLib.idle_add(self.show_window)
 
     def hide_window(self) -> None:
         self.hide()
