@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import gi
 
 gi.require_version("Gdk", "3.0")
@@ -50,6 +52,18 @@ class TranscriptWindow(Gtk.Window):
         self._partial_start = self._buffer.create_mark(
             None, self._buffer.get_end_iter(), True
         )
+        # Marks where the current recording's text begins, so clipboard
+        # auto-copy sends only this recording's words, not the older
+        # recordings still sitting above it in the accumulated buffer.
+        self._segment_start = self._buffer.create_mark(
+            None, self._buffer.get_end_iter(), True
+        )
+        # Single source of truth for clipboard sync: any buffer change (a
+        # dictated word landing, or the user hand-editing text) fires this,
+        # so the clipboard can never drift from what's on screen.
+        self._changed_handler_id = self._buffer.connect(
+            "changed", lambda _buf: self._auto_copy_current_segment()
+        )
 
     def _on_delete_event(self, _widget, _event) -> bool:
         # Hide instead of letting GTK destroy the window on close (X button) —
@@ -88,22 +102,42 @@ class TranscriptWindow(Gtk.Window):
     def begin_new_segment(self) -> None:
         # Called when a new recording starts, so consecutive recordings are
         # visually separated instead of run together or wiping each other.
-        self._drop_partial()
-        text = self._buffer_text()
-        if text and not text.endswith("\n"):
-            self._buffer.insert(self._buffer.get_end_iter(), "\n")
-        self._settle()
+        # Muted because this is 1-2 internal mutations (delete, maybe
+        # insert) that only mean something once they're both applied —
+        # syncing the clipboard after each intermediate step let a
+        # clipboard manager grab a half-updated value that nothing ever
+        # corrected, since there was no further edit to re-trigger sync.
+        with self._muted():
+            self._drop_partial()
+            text = self._buffer_text()
+            if text and not text.endswith("\n"):
+                self._buffer.insert(self._buffer.get_end_iter(), "\n")
+            self._settle()
+            self._buffer.move_mark(self._segment_start, self._buffer.get_end_iter())
+        self._auto_copy_current_segment()
 
     def set_partial(self, text: str) -> None:
-        self._drop_partial()
-        self._buffer.insert(self._buffer.get_end_iter(), text)
+        with self._muted():
+            self._drop_partial()
+            self._buffer.insert(self._buffer.get_end_iter(), text)
         self._scroll_to_end()
+        self._auto_copy_current_segment()
 
     def append_final(self, text: str) -> None:
-        self._drop_partial()
-        self._buffer.insert(self._buffer.get_end_iter(), text)
-        self._settle()
+        with self._muted():
+            self._drop_partial()
+            self._buffer.insert(self._buffer.get_end_iter(), text)
+            self._settle()
         self._scroll_to_end()
+        self._auto_copy_current_segment()
+
+    @contextmanager
+    def _muted(self):
+        self._buffer.handler_block(self._changed_handler_id)
+        try:
+            yield
+        finally:
+            self._buffer.handler_unblock(self._changed_handler_id)
 
     def _drop_partial(self) -> None:
         self._buffer.delete(
@@ -122,6 +156,14 @@ class TranscriptWindow(Gtk.Window):
         return self._buffer.get_text(start, end, False)
 
     def _on_copy_clicked(self, _button) -> None:
+        self._set_clipboard_text(self._buffer_text())
+
+    def _auto_copy_current_segment(self) -> None:
+        start = self._buffer.get_iter_at_mark(self._segment_start)
+        end = self._buffer.get_end_iter()
+        self._set_clipboard_text(self._buffer.get_text(start, end, False))
+
+    def _set_clipboard_text(self, text: str) -> None:
         clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-        clipboard.set_text(self._buffer_text(), -1)
+        clipboard.set_text(text, -1)
         clipboard.store()

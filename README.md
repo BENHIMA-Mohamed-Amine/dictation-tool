@@ -54,9 +54,20 @@ uv run python main.py
 The tray icon and the transcript window both have a Start/Stop control; the
 window's button is the everyday one, because a tray menu closes on every click.
 Text lands in the transcript window, which is editable — fix a word mid-sentence
-and the correction survives as you keep speaking. **Copy** is the only way to get
-the text out; there is deliberately no auto-type or clipboard-on-stop (it was
-tried twice and removed — see `plans/done/08-remove-auto-output.md`).
+and the correction survives as you keep speaking.
+
+The current recording's text is auto-copied to the clipboard as you speak — no
+need to click Copy or wait for Stop. The **Copy** button is still there and
+copies the full accumulated transcript (all recordings, not just the current
+one) if you want that instead.
+
+**Known limitation on Wayland/GNOME:** the compositor only lets the *focused*
+window claim the clipboard, so auto-copy silently fails to update the
+clipboard while you're focused on another window (e.g. dictating into a chat
+app). Click the transcript window once before pasting to make sure the latest
+text actually lands. (An earlier, different clipboard-on-stop approach was
+tried and removed for an unrelated timing bug — see
+`plans/done/08-remove-auto-output.md`.)
 
 To start it automatically at login, drop a desktop entry in
 `~/.config/autostart/` whose `Exec=` is the absolute path to `dictation start`.

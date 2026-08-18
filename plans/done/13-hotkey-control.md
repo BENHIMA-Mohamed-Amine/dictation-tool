@@ -1,6 +1,6 @@
 # Global shortcuts to control dictation (start/raise, stop, quit)
 
-**Status: approved**
+**Status: done**
 
 ## Why
 
